@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_not_sepeti/models/Kategori.dart';
+import 'package:flutter_not_sepeti/models/not.dart';
 import 'package:flutter_not_sepeti/utils/database_helper.dart';
 
 import 'not_detay.dart';
@@ -33,7 +34,7 @@ class NotListesi extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Center(child: Text("Not Listesi"))),
-      body: Container(),
+      body: Notlar(),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -67,7 +68,9 @@ class NotListesi extends StatelessWidget {
         return SimpleDialog(
           title: Text(
             "Kategori Ekle",
-            style: TextStyle(color: Theme.of(context).primaryColor),
+            style: TextStyle(color: Theme
+                .of(context)
+                .primaryColor),
           ),
           children: <Widget>[
             Padding(
@@ -117,10 +120,10 @@ class NotListesi extends StatelessWidget {
                         databaseHelper
                             .kategoriEkle(Kategori(yeniKategoriAdi))
                             .then((kategoriID) {
-                              if (kategoriID > 0) {
-                                debugPrint(kategoriID.toString());
-                              }
-                            });
+                          if (kategoriID > 0) {
+                            debugPrint(kategoriID.toString());
+                          }
+                        });
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -147,3 +150,45 @@ class NotListesi extends StatelessWidget {
     );
   }
 }
+
+class Notlar extends StatefulWidget {
+  const Notlar({super.key});
+
+  @override
+  State<Notlar> createState() => _NotlarState();
+}
+
+class _NotlarState extends State<Notlar> {
+  List<Not> tumNotlar = [];
+  late DatabaseHelper _databaseHelper;
+
+  @override
+  void initState() {
+    super.initState();
+    _databaseHelper = DatabaseHelper();
+    _notlariYukle();
+  }
+
+  void _notlariYukle() async {
+    await _databaseHelper.notlariGetir().then((notListesi) {
+      for (Map<String, dynamic> not in notListesi) {
+        tumNotlar.add(Not.fromMap(not));
+      }
+    });
+    setState(() {
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return tumNotlar.isEmpty ? CircularProgressIndicator() :
+      ListView.builder(
+          itemBuilder: (context, index) =>
+              ListTile(
+                title: Text(tumNotlar[index].notBaslik!),
+              ),
+        itemCount: tumNotlar.length,
+      );
+  }
+}
+

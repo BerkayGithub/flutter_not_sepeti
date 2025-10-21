@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_not_sepeti/models/Kategori.dart';
+import 'package:flutter_not_sepeti/models/not.dart';
 import 'package:flutter_not_sepeti/utils/database_helper.dart';
 
 class NotDetay extends StatefulWidget {
@@ -18,6 +19,7 @@ class _NotDetayState extends State<NotDetay> {
   int kategoriID = 1;
   int secilenOncelik = 0;
   static final _oncelik = ["Düşük", "Orta", "Yüksek"];
+  late String notBaslik, notIcerik;
 
   @override
   void initState() {
@@ -88,6 +90,15 @@ class _NotDetayState extends State<NotDetay> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
+                      validator: (textBasligi){
+                        if(textBasligi!.length < 3){
+                          return "En az 3 karakter olmalı";
+                        }
+                        return null;
+                      },
+                      onSaved: (textBasligi){
+                        notBaslik = textBasligi!;
+                      },
                       decoration: InputDecoration(
                         hintText: "Not başlığını giriniz",
                         labelText: "Başlık",
@@ -98,6 +109,9 @@ class _NotDetayState extends State<NotDetay> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
+                      onSaved: (textIcerik){
+                        notIcerik = textIcerik!;
+                      },
                       maxLines: 4,
                       decoration: InputDecoration(
                         hintText: "Not içeriğini giriniz",
@@ -155,8 +169,21 @@ class _NotDetayState extends State<NotDetay> {
                   OverflowBar(
                     spacing: 20,
                     children: <Widget>[
-                      ElevatedButton(onPressed: (){}, style: ElevatedButton.styleFrom(backgroundColor: Colors.grey), child: Text("Vazgeç", style: TextStyle(color: Colors.black),)),
-                      ElevatedButton(onPressed: (){}, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.shade700), child: Text("Kaydet", style: TextStyle(color: Colors.white),)),
+                      ElevatedButton(onPressed: (){
+                        Navigator.of(context).pop();
+                      }, style: ElevatedButton.styleFrom(backgroundColor: Colors.grey), child: Text("Vazgeç", style: TextStyle(color: Colors.black),)),
+                      ElevatedButton(onPressed: () async {
+                        if(formKey.currentState!.validate()){
+                          formKey.currentState!.save();
+                          var notTarih = DateTime.now();
+                          var eklenecekNot = Not(kategoriID, notBaslik, notIcerik, notTarih.toString(), secilenOncelik);
+                          await databaseHelper.notEkle(eklenecekNot).then((kaydedilenNotID){
+                            if(kaydedilenNotID > 0){
+                              Navigator.pop(context);
+                            }
+                          });
+                        }
+                      }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.shade700), child: Text("Kaydet", style: TextStyle(color: Colors.white),)),
                     ],
                   )
                 ],
