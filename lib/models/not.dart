@@ -5,6 +5,7 @@ class Not{
   String? notIcerik;
   String? notTarih;
   int? notOncelik;
+  String? kategoriBaslik;
 
   Not(this.kategoriID, this.notBaslik, this.notIcerik, this.notTarih,
       this.notOncelik);
@@ -30,6 +31,7 @@ class Not{
     notIcerik = map['notIcerik'];
     notTarih = map['notTarih'];
     notOncelik = map['notOncelik'];
+    kategoriBaslik = map['kategoriBaslik'];
   }
 
   @override

@@ -77,8 +77,18 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> notlariGetir() async {
     var db = await _getDatabase();
-    var sonuc = await db.query("not", orderBy: "notID DESC");
+    var sonuc = await db.rawQuery('SELECT * FROM "not" INNER JOIN Kategori on "not".kategoriID = Kategori.kategoriID');
     return sonuc;
+  }
+
+  Future<List<Not>> notListesiniGetir() async {
+    var tumNotlar = List<Not>.empty(growable: true);
+    await notlariGetir().then((notListesi) {
+      for (Map<String, dynamic> not in notListesi) {
+        tumNotlar.add(Not.fromMap(not));
+      }
+    });
+    return tumNotlar;
   }
 
   Future<int> notEkle(Not not) async {

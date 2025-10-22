@@ -25,9 +25,13 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class NotListesi extends StatelessWidget {
-  NotListesi({super.key});
+class NotListesi extends StatefulWidget {
+  const NotListesi({super.key});
+  @override
+  State<NotListesi> createState() => _NotListesiState();
+}
 
+class _NotListesiState extends State<NotListesi> {
   final DatabaseHelper databaseHelper = DatabaseHelper();
 
   @override
@@ -68,9 +72,7 @@ class NotListesi extends StatelessWidget {
         return SimpleDialog(
           title: Text(
             "Kategori Ekle",
-            style: TextStyle(color: Theme
-                .of(context)
-                .primaryColor),
+            style: TextStyle(color: Theme.of(context).primaryColor),
           ),
           children: <Widget>[
             Padding(
@@ -120,10 +122,10 @@ class NotListesi extends StatelessWidget {
                         databaseHelper
                             .kategoriEkle(Kategori(yeniKategoriAdi))
                             .then((kategoriID) {
-                          if (kategoriID > 0) {
-                            debugPrint(kategoriID.toString());
-                          }
-                        });
+                              if (kategoriID > 0) {
+                                debugPrint(kategoriID.toString());
+                              }
+                            });
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -143,11 +145,13 @@ class NotListesi extends StatelessWidget {
     );
   }
 
-  void _detaySayfasinaGit(BuildContext context) {
-    Navigator.push(
+  void _detaySayfasinaGit(BuildContext context) async{
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => NotDetay(baslik: 'Yeni Not')),
     );
+    setState(() {
+    });
   }
 }
 
@@ -166,29 +170,67 @@ class _NotlarState extends State<Notlar> {
   void initState() {
     super.initState();
     _databaseHelper = DatabaseHelper();
-    _notlariYukle();
-  }
-
-  void _notlariYukle() async {
-    await _databaseHelper.notlariGetir().then((notListesi) {
-      for (Map<String, dynamic> not in notListesi) {
-        tumNotlar.add(Not.fromMap(not));
-      }
-    });
-    setState(() {
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return tumNotlar.isEmpty ? CircularProgressIndicator() :
-      ListView.builder(
-          itemBuilder: (context, index) =>
-              ListTile(
-                title: Text(tumNotlar[index].notBaslik!),
-              ),
-        itemCount: tumNotlar.length,
-      );
+    return FutureBuilder(
+      future: _databaseHelper.notListesiniGetir(),
+      builder: (context, AsyncSnapshot<List<Not>> snapShot) {
+        if(snapShot.connectionState == ConnectionState.done){
+          tumNotlar = snapShot.data!;
+          return ListView.builder(
+            itemBuilder: (context, index) =>
+                ExpansionTile(
+                  title: Text(tumNotlar[index].notBaslik!),
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("Kategori", style: TextStyle(color: Colors.redAccent)),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(tumNotlar[index].kategoriBaslik!, style: TextStyle(color: Colors.black)),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text("Tarih", style: TextStyle(color: Colors.redAccent)),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(_databaseHelper.dateFormat(DateTime.parse(tumNotlar[index].notTarih!)), style: TextStyle(color: Colors.black)),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(tumNotlar[index].notIcerik!),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+            itemCount: tumNotlar.length,
+          );
+        }else {
+          return Center(child: CircularProgressIndicator());
+        }
+      },
+    );
   }
 }
 
