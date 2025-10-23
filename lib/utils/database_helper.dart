@@ -65,13 +65,13 @@ class DatabaseHelper {
 
   Future<int> kategoriGuncelle(Kategori kategori) async{
     var db = await _getDatabase();
-    var sonuc = await db.update('kategori', kategori.toMap(), where: "kategoriID", whereArgs: [kategori.kategoriID]);
+    var sonuc = await db.update('kategori', kategori.toMap(), where: "kategoriID = ?", whereArgs: [kategori.kategoriID]);
     return sonuc;
   }
 
   Future<int> kategoriSil(Kategori kategori) async{
     var db = await _getDatabase();
-    var sonuc = await db.delete('kategori', where: "kategoriID", whereArgs: [kategori.kategoriID]);
+    var sonuc = await db.delete('kategori', where: "kategoriID = ?", whereArgs: [kategori.kategoriID]);
     return sonuc;
   }
 
@@ -99,13 +99,13 @@ class DatabaseHelper {
 
   Future<int> notGuncelle(Not not) async{
     var db = await _getDatabase();
-    var sonuc = await db.update('not', not.toMap(), where: "notID", whereArgs: [not.notID]);
+    var sonuc = await db.update('not', not.toMap(), where: "notID = ?", whereArgs: [not.notID]);
     return sonuc;
   }
 
-  Future<int> notSil(Not not) async{
+  Future<int> notSil(int notID) async{
     var db = await _getDatabase();
-    var sonuc = await db.delete('not', where: "notID", whereArgs: [not.notID]);
+    var sonuc = await db.delete('not', where: "notID = ?", whereArgs: [notID]);
     return sonuc;
   }
 

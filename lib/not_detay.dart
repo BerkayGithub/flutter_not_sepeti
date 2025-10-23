@@ -5,8 +5,9 @@ import 'package:flutter_not_sepeti/utils/database_helper.dart';
 
 class NotDetay extends StatefulWidget {
   final String baslik;
+  final Not? duzenlenecekNot;
 
-  const NotDetay({super.key, required this.baslik});
+  const NotDetay({super.key, required this.baslik, this.duzenlenecekNot});
 
   @override
   State<NotDetay> createState() => _NotDetayState();
@@ -16,8 +17,8 @@ class _NotDetayState extends State<NotDetay> {
   var formKey = GlobalKey<FormState>();
   late List<Kategori> kategoriListesi;
   late DatabaseHelper databaseHelper;
-  int kategoriID = 1;
-  int secilenOncelik = 0;
+  late int kategoriID;
+  late int secilenOncelik;
   static final _oncelik = ["Düşük", "Orta", "Yüksek"];
   late String notBaslik, notIcerik;
 
@@ -27,6 +28,15 @@ class _NotDetayState extends State<NotDetay> {
     kategoriListesi = List<Kategori>.of([]);
     databaseHelper = DatabaseHelper();
     _kategoriListesiniDoldur();
+    if(widget.duzenlenecekNot != null){
+      notBaslik = widget.duzenlenecekNot!.notBaslik!;
+      notIcerik = widget.duzenlenecekNot!.notIcerik!;
+      kategoriID = widget.duzenlenecekNot!.kategoriID!;
+      secilenOncelik = widget.duzenlenecekNot!.notOncelik!;
+    }else {
+      kategoriID = 1;
+      secilenOncelik = 0;
+    }
   }
 
   void _kategoriListesiniDoldur() async {
@@ -90,6 +100,7 @@ class _NotDetayState extends State<NotDetay> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
+                      initialValue: notBaslik,
                       validator: (textBasligi){
                         if(textBasligi!.length < 3){
                           return "En az 3 karakter olmalı";
@@ -109,6 +120,7 @@ class _NotDetayState extends State<NotDetay> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
+                      initialValue: notIcerik,
                       onSaved: (textIcerik){
                         notIcerik = textIcerik!;
                       },
@@ -176,12 +188,26 @@ class _NotDetayState extends State<NotDetay> {
                         if(formKey.currentState!.validate()){
                           formKey.currentState!.save();
                           var notTarih = DateTime.now();
-                          var eklenecekNot = Not(kategoriID, notBaslik, notIcerik, notTarih.toString(), secilenOncelik);
-                          await databaseHelper.notEkle(eklenecekNot).then((kaydedilenNotID){
-                            if(kaydedilenNotID > 0){
-                              Navigator.pop(context);
-                            }
-                          });
+                          if(widget.duzenlenecekNot == null) {
+                            var eklenecekNot = Not(
+                                kategoriID, notBaslik, notIcerik,
+                                notTarih.toString(), secilenOncelik);
+                            await databaseHelper.notEkle(eklenecekNot).then((kaydedilenNotID){
+                              if(kaydedilenNotID > 0){
+                                Navigator.pop(context);
+                              }
+                            });
+                          }else{
+                            var guncellenecekNot = Not.withId(
+                              widget.duzenlenecekNot!.notID!,
+                                kategoriID, notBaslik, notIcerik,
+                                notTarih.toString(), secilenOncelik);
+                            await databaseHelper.notGuncelle(guncellenecekNot).then((guncellenenID){
+                              if(guncellenenID > 0){
+                                Navigator.pop(context);
+                              }
+                            });
+                          }
                         }
                       }, style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent.shade700), child: Text("Kaydet", style: TextStyle(color: Colors.white),)),
                     ],

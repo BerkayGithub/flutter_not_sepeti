@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_not_sepeti/models/Kategori.dart';
 import 'package:flutter_not_sepeti/models/not.dart';
@@ -179,9 +181,11 @@ class _NotlarState extends State<Notlar> {
       builder: (context, AsyncSnapshot<List<Not>> snapShot) {
         if(snapShot.connectionState == ConnectionState.done){
           tumNotlar = snapShot.data!;
+          sleep(Duration(milliseconds: 500));
           return ListView.builder(
             itemBuilder: (context, index) =>
                 ExpansionTile(
+                  leading: _oncelikIconuAta(tumNotlar[index].notOncelik!),
                   title: Text(tumNotlar[index].notBaslik!),
                   children: [
                     Container(
@@ -217,7 +221,20 @@ class _NotlarState extends State<Notlar> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(tumNotlar[index].notIcerik!),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text("İçerik"),
+                                Text(tumNotlar[index].notIcerik!),
+                              ],
+                            ),
+                          ),
+                          OverflowBar(
+                            alignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(onPressed: (){_notSil(tumNotlar[index].notID!);}, child: Text("SİL", style: TextStyle(color: Colors.redAccent))),
+                              TextButton(onPressed: (){_detaySayfasinaGit(context, tumNotlar[index]);}, child: Text("GÜNCELLE", style: TextStyle(color: Colors.green))),
+                            ],
                           )
                         ],
                       ),
@@ -227,10 +244,44 @@ class _NotlarState extends State<Notlar> {
             itemCount: tumNotlar.length,
           );
         }else {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: Text("Yükleniyor..."));
         }
       },
     );
+  }
+
+  _oncelikIconuAta(int notOncelik){
+    switch(notOncelik){
+      case 0:
+        return CircleAvatar(backgroundColor: Colors.redAccent.shade100, child: FittedBox(fit: BoxFit.scaleDown,child: Text("AZ", maxLines: 1)));
+      case 1:
+        return CircleAvatar(backgroundColor: Colors.redAccent.shade400, child: FittedBox(fit:BoxFit.scaleDown,child: Text("ORTA", maxLines: 1)));
+      case 2:
+        return CircleAvatar(backgroundColor: Colors.redAccent.shade700, child: FittedBox(fit: BoxFit.scaleDown,child: Text("ACİL",maxLines: 1)));
+    }
+  }
+
+  void _notSil(int notID){
+    _databaseHelper.notSil(notID).then((silinenNotID){
+      if(silinenNotID != 0){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Not silindi'),
+          ),
+        );
+        setState(() {
+        });
+      }
+    });
+  }
+
+  void _detaySayfasinaGit(BuildContext context, Not not) async{
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NotDetay(baslik: 'Notu Düzenle', duzenlenecekNot: not)),
+    );
+    setState(() {
+    });
   }
 }
 
