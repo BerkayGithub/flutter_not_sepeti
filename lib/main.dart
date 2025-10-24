@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_not_sepeti/kategori_islemleri.dart';
 import 'package:flutter_not_sepeti/models/Kategori.dart';
 import 'package:flutter_not_sepeti/models/not.dart';
 import 'package:flutter_not_sepeti/utils/database_helper.dart';
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
 
 class NotListesi extends StatefulWidget {
   const NotListesi({super.key});
+
   @override
   State<NotListesi> createState() => _NotListesiState();
 }
@@ -39,7 +42,27 @@ class _NotListesiState extends State<NotListesi> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Center(child: Text("Not Listesi"))),
+      appBar: AppBar(
+        title: Center(child: Text("Not Listesi")),
+        actions: <Widget>[
+          PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: Icon(Icons.category),
+                    title: Text("Kategoriler"),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _kategorilerSayfasinaGit();
+                    },
+                  ),
+                ),
+              ];
+            },
+          ),
+        ],
+      ),
       body: Notlar(),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -125,7 +148,7 @@ class _NotListesiState extends State<NotListesi> {
                             .kategoriEkle(Kategori(yeniKategoriAdi))
                             .then((kategoriID) {
                               if (kategoriID > 0) {
-                                debugPrint(kategoriID.toString());
+                                Navigator.pop(context);
                               }
                             });
                       }
@@ -147,13 +170,19 @@ class _NotListesiState extends State<NotListesi> {
     );
   }
 
-  void _detaySayfasinaGit(BuildContext context) async{
+  void _detaySayfasinaGit(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => NotDetay(baslik: 'Yeni Not')),
     );
-    setState(() {
-    });
+    setState(() {});
+  }
+
+  void _kategorilerSayfasinaGit() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => Kategoriler()));
+    setState(() {});
   }
 }
 
@@ -179,109 +208,154 @@ class _NotlarState extends State<Notlar> {
     return FutureBuilder(
       future: _databaseHelper.notListesiniGetir(),
       builder: (context, AsyncSnapshot<List<Not>> snapShot) {
-        if(snapShot.connectionState == ConnectionState.done){
+        if (snapShot.connectionState == ConnectionState.done) {
           tumNotlar = snapShot.data!;
           sleep(Duration(milliseconds: 500));
           return ListView.builder(
-            itemBuilder: (context, index) =>
-                ExpansionTile(
-                  leading: _oncelikIconuAta(tumNotlar[index].notOncelik!),
-                  title: Text(tumNotlar[index].notBaslik!),
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+            itemBuilder: (context, index) => ExpansionTile(
+              leading: _oncelikIconuAta(tumNotlar[index].notOncelik!),
+              title: Text(tumNotlar[index].notBaslik!),
+              children: [
+                Container(
+                  padding: EdgeInsets.all(4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text("Kategori", style: TextStyle(color: Colors.redAccent)),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(tumNotlar[index].kategoriBaslik!, style: TextStyle(color: Colors.black)),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text("Tarih", style: TextStyle(color: Colors.redAccent)),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(_databaseHelper.dateFormat(DateTime.parse(tumNotlar[index].notTarih!)), style: TextStyle(color: Colors.black)),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Kategori",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text("İçerik"),
-                                Text(tumNotlar[index].notIcerik!),
-                              ],
+                            child: Text(
+                              tumNotlar[index].kategoriBaslik!,
+                              style: TextStyle(color: Colors.black),
                             ),
                           ),
-                          OverflowBar(
-                            alignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(onPressed: (){_notSil(tumNotlar[index].notID!);}, child: Text("SİL", style: TextStyle(color: Colors.redAccent))),
-                              TextButton(onPressed: (){_detaySayfasinaGit(context, tumNotlar[index]);}, child: Text("GÜNCELLE", style: TextStyle(color: Colors.green))),
-                            ],
-                          )
                         ],
                       ),
-                    )
-                  ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Tarih",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              _databaseHelper.dateFormat(
+                                DateTime.parse(tumNotlar[index].notTarih!),
+                              ),
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text("İçerik"),
+                            Text(tumNotlar[index].notIcerik!),
+                          ],
+                        ),
+                      ),
+                      OverflowBar(
+                        alignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              _notSil(tumNotlar[index].notID!);
+                            },
+                            child: Text(
+                              "SİL",
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              _detaySayfasinaGit(context, tumNotlar[index]);
+                            },
+                            child: Text(
+                              "GÜNCELLE",
+                              style: TextStyle(color: Colors.green),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
+              ],
+            ),
             itemCount: tumNotlar.length,
           );
-        }else {
+        } else {
           return Center(child: Text("Yükleniyor..."));
         }
       },
     );
   }
 
-  _oncelikIconuAta(int notOncelik){
-    switch(notOncelik){
+  _oncelikIconuAta(int notOncelik) {
+    switch (notOncelik) {
       case 0:
-        return CircleAvatar(backgroundColor: Colors.redAccent.shade100, child: FittedBox(fit: BoxFit.scaleDown,child: Text("AZ", maxLines: 1)));
+        return CircleAvatar(
+          backgroundColor: Colors.redAccent.shade100,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text("AZ", maxLines: 1),
+          ),
+        );
       case 1:
-        return CircleAvatar(backgroundColor: Colors.redAccent.shade400, child: FittedBox(fit:BoxFit.scaleDown,child: Text("ORTA", maxLines: 1)));
+        return CircleAvatar(
+          backgroundColor: Colors.redAccent.shade400,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text("ORTA", maxLines: 1),
+          ),
+        );
       case 2:
-        return CircleAvatar(backgroundColor: Colors.redAccent.shade700, child: FittedBox(fit: BoxFit.scaleDown,child: Text("ACİL",maxLines: 1)));
+        return CircleAvatar(
+          backgroundColor: Colors.redAccent.shade700,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text("ACİL", maxLines: 1),
+          ),
+        );
     }
   }
 
-  void _notSil(int notID){
-    _databaseHelper.notSil(notID).then((silinenNotID){
-      if(silinenNotID != 0){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Not silindi'),
-          ),
-        );
-        setState(() {
-        });
+  void _notSil(int notID) {
+    _databaseHelper.notSil(notID).then((silinenNotID) {
+      if (silinenNotID != 0) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Not silindi')));
+        setState(() {});
       }
     });
   }
 
-  void _detaySayfasinaGit(BuildContext context, Not not) async{
+  void _detaySayfasinaGit(BuildContext context, Not not) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => NotDetay(baslik: 'Notu Düzenle', duzenlenecekNot: not)),
+      MaterialPageRoute(
+        builder: (context) =>
+            NotDetay(baslik: 'Notu Düzenle', duzenlenecekNot: not),
+      ),
     );
-    setState(() {
-    });
+    setState(() {});
   }
 }
-

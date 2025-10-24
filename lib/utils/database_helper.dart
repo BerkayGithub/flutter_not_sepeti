@@ -57,6 +57,16 @@ class DatabaseHelper {
     return sonuc;
   }
 
+  Future<List<Kategori>> kategoriListesiniGetir() async{
+    var tumKategoriler = List<Kategori>.empty(growable: true);
+    await kategorileriGetir().then((mapList){
+      for (Map<String, dynamic> kategoriMap in mapList) {
+        tumKategoriler.add(Kategori.fromMap(kategoriMap));
+      }
+    });
+    return tumKategoriler;
+  }
+
   Future<int> kategoriEkle(Kategori kategori) async {
     var db = await _getDatabase();
     var sonuc = await db.insert('kategori', kategori.toMap());
@@ -69,9 +79,9 @@ class DatabaseHelper {
     return sonuc;
   }
 
-  Future<int> kategoriSil(Kategori kategori) async{
+  Future<int> kategoriSil(int kategoriID) async{
     var db = await _getDatabase();
-    var sonuc = await db.delete('kategori', where: "kategoriID = ?", whereArgs: [kategori.kategoriID]);
+    var sonuc = await db.delete('kategori', where: "kategoriID = ?", whereArgs: [kategoriID]);
     return sonuc;
   }
 

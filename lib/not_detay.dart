@@ -34,6 +34,8 @@ class _NotDetayState extends State<NotDetay> {
       kategoriID = widget.duzenlenecekNot!.kategoriID!;
       secilenOncelik = widget.duzenlenecekNot!.notOncelik!;
     }else {
+      notBaslik = "";
+      notIcerik = "";
       kategoriID = 1;
       secilenOncelik = 0;
     }
